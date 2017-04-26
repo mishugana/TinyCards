@@ -1,6 +1,9 @@
 /*
  * Copyright (c) 2015 Pebble Technology
  */
+/*
+* Matt Sandler 2017 Unofficial TinyCards app for Pebble watches.
+*/
 
 #pragma once
 
@@ -29,7 +32,8 @@ typedef struct {
 void tinycard_app_main_window_view_model_announce_changed(TinyCardAppMainWindowViewModel *model);
 
 typedef struct {
-  char fact[20];
+  char side1[20];
+  char side2[20];
 } TinyCardAppDataPoint;
 
 

@@ -1,7 +1,9 @@
 /*
  * Copyright (c) 2015 Pebble Technology
  */
-
+/*
+* Matt Sandler 2017 Unofficial TinyCards app for Pebble watches.
+*/
 #pragma once
 
 #include <pebble.h>

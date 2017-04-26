@@ -7,7 +7,8 @@
         "displayName": "Unofficial Duolingo Tiny Cards",
         "enableMultiJS": false,
         "messageKeys": [
-            "FACT",
+            "SIDE1",
+            "SIDE2",
             "NUMBER"
         ],
         "projectType": "native",

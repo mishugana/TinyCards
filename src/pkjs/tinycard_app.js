@@ -4,23 +4,32 @@ function fetchDeck(deckID) {
   req.onload = function () {
     if (req.readyState === 4) {
       if (req.status === 200) {
-        var j=0;
         var response = JSON.parse(req.responseText);
         for (var i=0; i < response.cardCount; i++)
           {   
               var card = response.cards[i];
+            
+              var cardDict = {
+                "NUMBER":i,
+                "SIDE1":"IMAGE", 
+                "SIDE2":"IMAGEN"
+              };
+            
               var cardSide2 = card.sides[1];
               var fact = cardSide2.concepts[0].fact;
-            console.log(fact.type);
               if (fact.type == 'TEXT')
                 {   
-                    var fact_text = fact.text;
-                    Pebble.sendAppMessage({
-                      'FACT': fact_text,
-                      'NUMBER': j
-                    });
-                    j++;
+                  console.log("poo");
+                  cardDict.SIDE1=fact.text;
                 }
+              var cardSide1 = card.sides[0];
+              fact = cardSide1.concepts[0].fact;
+              if (fact.type == 'TEXT')
+                {   
+                  cardDict.SIDE2=fact.text;
+                }
+              console.log("cardDict: "+cardDict);
+              Pebble.sendAppMessage(cardDict);
           }
 
       } else {
@@ -40,7 +49,7 @@ Pebble.addEventListener('ready', function (e) {
 });
 
 Pebble.addEventListener('appmessage', function (e) {
- //fetchDeck("b4fdea0f-0baf-4e8d-977c-70704f7bad29");
+ fetchDeck("b4fdea0f-0baf-4e8d-977c-70704f7bad29");
   console.log('message!');
 });
 

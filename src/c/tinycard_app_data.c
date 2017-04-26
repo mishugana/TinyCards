@@ -1,6 +1,9 @@
 /*
  * Copyright (c) 2015 Pebble Technology
  */
+/*
+* Matt Sandler 2017 Unofficial TinyCards app for Pebble watches.
+*/
 
 #include <pebble.h>
 #include "tinycard_app_data.h"
@@ -14,7 +17,7 @@ void tinycard_app_main_window_view_model_announce_changed(TinyCardAppMainWindowV
 int tinycard_app_index_of_data_point(TinyCardAppDataPoint *dp);
 
 void tinycard_app_view_model_fill_strings_and_pagination(TinyCardAppMainWindowViewModel *view_model, TinyCardAppDataPoint *data_point) {
-  view_model->fact = data_point->fact;
+  view_model->fact = data_point->side1;
 
   view_model->pagination.idx = (int16_t)(1 + tinycard_app_index_of_data_point(data_point));
   view_model->pagination.num = (int16_t)tinycard_app_num_data_points();
@@ -30,7 +33,7 @@ void tinycard_app_view_model_fill_colors(TinyCardAppMainWindowViewModel *model, 
 }
 
 GColor tinycard_app_data_point_color(TinyCardAppDataPoint *dp) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Page %d", tinycard_app_index_of_data_point(dp));
+//   APP_LOG(APP_LOG_LEVEL_DEBUG, "Page %d", tinycard_app_index_of_data_point(dp));
   return (tinycard_app_index_of_data_point(dp) % 2) ? GColorPictonBlue : GColorMayGreen;
 }
 
@@ -50,137 +53,106 @@ void tinycard_app_view_model_deinit(TinyCardAppMainWindowViewModel *model) {
 
 static TinyCardAppDataPoint s_data_points[] = {
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
-    },
-          {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
-    },
-          {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
-    },
-          {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
+    },
+        {
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
-    },
-          {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
-    },
-          {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
-    },
-          {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
-    },
-          {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
     {
-        .fact = "Hola",
+        .side1 = "Hola",
+        .side2 = "Hello",
     },
-    {
-        .fact = "Hola",
-    },
-          {
-        .fact = "Hola",
-    },
-    {
-        .fact = "Hola",
-    },
-    {
-        .fact = "Hola",
-    },
-    {
-        .fact = "Hola",
-    },
-          {
-        .fact = "Hola",
-    },
-    {
-        .fact = "Hola",
-    },
-    {
-        .fact = "Hola",
-    },
-    {
-        .fact = "Hola",
-    },
-          {
-        .fact = "Hola",
-    },
-    {
-        .fact = "Hola",
-    },
-    {
-        .fact = "Hola",
-    },
-    {
-        .fact = "Hola",
-    },
+
 };
 
 

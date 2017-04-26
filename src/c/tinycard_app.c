@@ -1,6 +1,9 @@
 /*
  * Copyright (c) 2015 Pebble Technology
  */
+/*
+* Matt Sandler 2017 Unofficial TinyCards app for Pebble watches.
+*/
 
 #include <pebble.h>
 #include "tinycard_app_private.h"
@@ -156,6 +159,7 @@ static const int16_t SCROLL_DIST_IN = 8;
 
 typedef enum {
   ScrollDirectionDown,
+  ScrollDirectionRight,
   ScrollDirectionUp,
 } ScrollDirection;
 
@@ -201,22 +205,28 @@ static Animation *animation_for_bounce(TinyCardAppData *data, ScrollDirection di
 }
 
 static void ask_for_scroll(TinyCardAppData *data, ScrollDirection direction) {
-  int delta = direction == ScrollDirectionUp ? -1 : +1;
-  TinyCardAppDataPoint *next_data_point = tinycard_app_data_point_delta(data->data_point, delta);
-
-  Animation *scroll_animation;
-
-  if (!next_data_point) {
-    scroll_animation = animation_for_bounce(data, direction);
-  } else {
-    // data point switches immediately
-    data->data_point = next_data_point;
-    scroll_animation = animation_for_scroll(data, direction, next_data_point);
+  if (direction != ScrollDirectionRight){
+      int delta = direction == ScrollDirectionUp ? -1 : +1;
+      TinyCardAppDataPoint *next_data_point = tinycard_app_data_point_delta(data->data_point, delta);
+    
+      Animation *scroll_animation;
+    
+      if (!next_data_point) {
+        scroll_animation = animation_for_bounce(data, direction);
+      } else {
+        // data point switches immediately
+        data->data_point = next_data_point;
+        scroll_animation = animation_for_scroll(data, direction, next_data_point);
+      }
+    
+      animation_unschedule(data->previous_animation);
+      animation_schedule(scroll_animation);
+      data->previous_animation = scroll_animation;
+    }
+  else
+  {
+      text_layer_set_text(data->fact_layer, data->data_point->side2);
   }
-
-  animation_unschedule(data->previous_animation);
-  animation_schedule(scroll_animation);
-  data->previous_animation = scroll_animation;
 }
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -224,23 +234,36 @@ static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
   ask_for_scroll(data, ScrollDirectionUp);
 }
 
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  TinyCardAppData *data = context;
+  //ask_for_scroll(data, ScrollDirectionRight);
+  
+  if(strcmp(text_layer_get_text(data->fact_layer) , data->data_point->side1))
+    text_layer_set_text(data->fact_layer, data->data_point->side1);
+  else
+    text_layer_set_text(data->fact_layer, data->data_point->side2);
+  
+}
+
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
+  
   TinyCardAppData *data = context;
   ask_for_scroll(data, ScrollDirectionDown);
 }
 
 static void click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
+  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
   window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
 }
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
-  Tuple *fact_tuple = dict_find(iterator,  MESSAGE_KEY_FACT);
+  Tuple *side1_tuple = dict_find(iterator,  MESSAGE_KEY_SIDE1);
+  Tuple *side2_tuple = dict_find(iterator,  MESSAGE_KEY_SIDE2);
   Tuple *number_tuple = dict_find(iterator,  MESSAGE_KEY_NUMBER);
-//   APP_LOG(APP_LOG_LEVEL_INFO, "Fact! %d",(int)number_tuple->value->int32 );
-//   APP_LOG(APP_LOG_LEVEL_INFO, "Fact2! %s",tinycard_app_data_point_at(0)->fact);
-  strncpy(tinycard_app_data_point_at((int)number_tuple->value->int32)->fact , fact_tuple->value->cstring,20);
-  
+   APP_LOG(APP_LOG_LEVEL_INFO, "Number %d, Side 1 %s, Side 2 %s",(int)number_tuple->value->int32 , side1_tuple->value->cstring, side2_tuple->value->cstring);
+  strncpy(tinycard_app_data_point_at((int)number_tuple->value->int32)->side1 , side1_tuple->value->cstring,20);
+  strncpy(tinycard_app_data_point_at((int)number_tuple->value->int32)->side2 , side2_tuple->value->cstring,20);
   TinyCardAppData *data = window_get_user_data(s_main_window);
   data->view_model.announce_changed = view_model_changed;
 
@@ -271,7 +294,7 @@ static void init() {
   app_message_register_outbox_failed(outbox_failed_callback);
   app_message_register_outbox_sent(outbox_sent_callback);
   //Open Appmessage
-  const int inbox_size = 1024;
+  const int inbox_size = 2024;
   const int outbox_size = 128;
   app_message_open(inbox_size, outbox_size);
   
