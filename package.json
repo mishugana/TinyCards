@@ -1,0 +1,28 @@
+{
+    "author": "Matt Sandler",
+    "dependencies": {},
+    "keywords": [],
+    "name": "duolingo-tiny-cards",
+    "pebble": {
+        "displayName": "Unofficial Duolingo Tiny Cards",
+        "enableMultiJS": false,
+        "messageKeys": [
+            "FACT",
+            "NUMBER"
+        ],
+        "projectType": "native",
+        "resources": {
+            "media": []
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "aplite",
+            "basalt"
+        ],
+        "uuid": "ae8b2bc4-7f29-41c4-b8e5-d0b3d7a999ad",
+        "watchapp": {
+            "watchface": false
+        }
+    },
+    "version": "0.9.0"
+}
