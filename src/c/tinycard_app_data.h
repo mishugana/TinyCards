@@ -49,7 +49,6 @@ void tinycard_app_view_model_deinit(TinyCardAppMainWindowViewModel *model);
 
 GColor tinycard_app_data_point_color(TinyCardAppDataPoint *data_point);
 
-
 int tinycard_app_num_data_points(void);
 
 TinyCardAppDataPoint *tinycard_app_data_point_at(int idx);

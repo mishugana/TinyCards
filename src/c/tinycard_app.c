@@ -10,6 +10,7 @@
 #include "tinycard_app_animations.h"
 #include "tinycard_app_data.h"
 #include "gdraw_command_transforms.h"
+#include "netdownload.h"
 
 #define STATUS_BAR_HEIGHT 16
 
@@ -17,6 +18,10 @@ static Window *s_main_window;
 
 static const int16_t MARGIN = 8;
 static const int16_t ICON_DIMENSIONS = 48;
+
+static BitmapLayer *bitmap_layer;
+static GBitmap *current_bmp;
+
 
 ////////////////////
 // update procs for our three custom layers
@@ -116,17 +121,25 @@ static void main_window_load(Window *window) {
 
   // propagate all view model content to the UI
   tinycard_app_main_window_view_model_announce_changed(&data->view_model);
+  
+  bitmap_layer = bitmap_layer_create(bounds);
+  layer_add_child(window_layer, bitmap_layer_get_layer(bitmap_layer));
+  current_bmp = NULL;
 }
 
 static void main_window_unload(Window *window) {
   TinyCardAppData *data = window_get_user_data(window);
   data->view_model.announce_changed = NULL;
   tinycard_app_view_model_deinit(&data->view_model);
-
+  
+  bitmap_layer_destroy(bitmap_layer);
+  gbitmap_destroy(current_bmp);
+  
   layer_destroy(data->horizontal_ruler_layer);
   text_layer_destroy(data->fact_layer);
   text_layer_destroy(data->fake_statusbar);
   text_layer_destroy(data->pagination_layer);
+  
 }
 
 static void after_scroll_swap_text(Animation *animation, bool finished, void *context) {
@@ -230,8 +243,43 @@ static void ask_for_scroll(TinyCardAppData *data, ScrollDirection direction) {
 }
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
+  if (current_bmp) {
+    TinyCardAppData *data = context;
+    gbitmap_destroy(current_bmp);
+    current_bmp = NULL;
+    bitmap_layer_set_bitmap(bitmap_layer, NULL);
+    text_layer_set_text(data->fact_layer, data->data_point->side1);
+  }
   TinyCardAppData *data = context;
   ask_for_scroll(data, ScrollDirectionUp);
+}
+
+void show_image(void *context) {
+  TinyCardAppData *data = context;
+  // show that we are loading by showing no image
+  bitmap_layer_set_bitmap(bitmap_layer, NULL);
+  
+  text_layer_set_text(data->fact_layer, "Loading...");
+
+  // Unload the current image if we had one and save a pointer to this one
+  if (current_bmp) {
+    gbitmap_destroy(current_bmp);
+    current_bmp = NULL;
+    bitmap_layer_set_bitmap(bitmap_layer, NULL);
+    text_layer_set_text(data->fact_layer, data->data_point->side1);
+  }
+  else
+    {
+      
+      //char* imgurl = "http://mysterious-sands-15271.herokuapp.com?url=";
+      char* imgurl = "http://pecalabs.com/tinycard8.png?url=";
+      //strcat(imgurl, text_layer_get_text(data->fact_layer));
+    
+      text_layer_set_text(data->fact_layer, "Loading...");
+      // http://mysterious-sands-15271.herokuapp.com
+      // https://d9np3dj86nsu2.cloudfront.net/image/2bbd1be87effb98d93ca7fb6a4afa005
+      netdownload_request(imgurl);
+    }
 }
 
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -241,12 +289,31 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   if(strcmp(text_layer_get_text(data->fact_layer) , data->data_point->side1))
     text_layer_set_text(data->fact_layer, data->data_point->side1);
   else
-    text_layer_set_text(data->fact_layer, data->data_point->side2);
+    {
+    if(strncmp("https://", data->data_point->side2, 8) == 0)
+      {
+        
+        show_image(context);      
+      }
+    else
+    {
+      text_layer_set_text(data->fact_layer, data->data_point->side2);
+    }
+      
+      
+    }
+  
   
 }
 
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
-  
+  if (current_bmp) {
+    TinyCardAppData *data = context;
+    gbitmap_destroy(current_bmp);
+    current_bmp = NULL;
+    bitmap_layer_set_bitmap(bitmap_layer, NULL);
+    text_layer_set_text(data->fact_layer, data->data_point->side1);
+  }
   TinyCardAppData *data = context;
   ask_for_scroll(data, ScrollDirectionDown);
 }
@@ -257,7 +324,7 @@ static void click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
 }
 
-static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   Tuple *side1_tuple = dict_find(iterator,  MESSAGE_KEY_SIDE1);
   Tuple *side2_tuple = dict_find(iterator,  MESSAGE_KEY_SIDE2);
   Tuple *number_tuple = dict_find(iterator,  MESSAGE_KEY_NUMBER);
@@ -269,34 +336,59 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
 }
 
-static void inbox_dropped_callback(AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
-}
+// static void inbox_dropped_callback(AppMessageResult reason, void *context) {
+//   APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+// }
 
-static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
-}
+// static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
+//   APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
+// }
 
-static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
+// static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
+//   APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
+// }
+
+void download_complete_handler(NetDownload *download) {
+  printf("Loaded image with %lu bytes", download->length);
+  printf("Heap free is %u bytes", heap_bytes_free());
+
+  GBitmap *bmp = gbitmap_create_from_png_data(download->data, download->length);
+  bitmap_layer_set_bitmap(bitmap_layer, bmp);
+
+  // Save pointer to currently shown bitmap (to free it)
+  if (current_bmp) {
+    gbitmap_destroy(current_bmp);
+  }
+  current_bmp = bmp;
+
+  // Free the memory now
+  free(download->data);
+
+  // We null it out now to avoid a double free
+  download->data = NULL;
+  netdownload_destroy(download);
 }
 
 static void init() {
+  // Need to initialize this first to make sure it is there when
+  // the window_load function is called by window_stack_push.
+  netdownload_initialize(download_complete_handler);
+  
   TinyCardAppData *data = malloc(sizeof(TinyCardAppData));
   memset(data, 0, sizeof(TinyCardAppData));
   TinyCardAppDataPoint *dp = tinycard_app_data_point_at(0);
   set_data_point(data, dp);
   s_main_window = window_create();
   
-    // Register callbacks
-  app_message_register_inbox_received(inbox_received_callback);
-  app_message_register_inbox_dropped(inbox_dropped_callback);
-  app_message_register_outbox_failed(outbox_failed_callback);
-  app_message_register_outbox_sent(outbox_sent_callback);
-  //Open Appmessage
-  const int inbox_size = 2024;
-  const int outbox_size = 128;
-  app_message_open(inbox_size, outbox_size);
+//     // Register callbacks
+//   app_message_register_inbox_received(inbox_received_callback);
+//   app_message_register_inbox_dropped(inbox_dropped_callback);
+//   app_message_register_outbox_failed(outbox_failed_callback);
+//   app_message_register_outbox_sent(outbox_sent_callback);
+//   //Open Appmessage
+//   const int inbox_size = 2024;
+//   const int outbox_size = 128;
+//   app_message_open(inbox_size, outbox_size);
   
   window_set_click_config_provider_with_context(s_main_window, click_config_provider, data);
   window_set_user_data(s_main_window, data);
@@ -310,6 +402,7 @@ static void init() {
 }
 
 static void deinit() {
+  netdownload_deinitialize();
   window_destroy(s_main_window);
 }
 
