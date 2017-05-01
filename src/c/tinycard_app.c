@@ -254,6 +254,18 @@ static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
   ask_for_scroll(data, ScrollDirectionUp);
 }
 
+
+
+char* concat(const char *s1, const char *s2)
+{
+    char *result = malloc(strlen(s1)+strlen(s2));//+1 for the zero-terminator
+    //in real code you would check for errors in malloc here
+    strcpy(result, s1);
+    strcat(result, s2+1);
+    return result;
+}
+
+
 void show_image(void *context) {
   TinyCardAppData *data = context;
   // show that we are loading by showing no image
@@ -272,13 +284,13 @@ void show_image(void *context) {
     {
       
       //char* imgurl = "http://mysterious-sands-15271.herokuapp.com?url=";
-      char* imgurl = "http://pecalabs.com/tinycard8.png?url=";
+      //char* imgurl = concat("https://thawing-everglades-85022.herokuapp.com/?op=resize&tc=",data->data_point->side2);
       //strcat(imgurl, text_layer_get_text(data->fact_layer));
-    
       text_layer_set_text(data->fact_layer, "Loading...");
       // http://mysterious-sands-15271.herokuapp.com
       // https://d9np3dj86nsu2.cloudfront.net/image/2bbd1be87effb98d93ca7fb6a4afa005
-      netdownload_request(imgurl);
+      netdownload_request(data->data_point->side2);
+      //free(imgurl);
     }
 }
 
@@ -290,7 +302,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
     text_layer_set_text(data->fact_layer, data->data_point->side1);
   else
     {
-    if(strncmp("https://", data->data_point->side2, 8) == 0)
+    if(strncmp("/", data->data_point->side2, 1) == 0)
       {
         
         show_image(context);      
@@ -329,8 +341,8 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   Tuple *side2_tuple = dict_find(iterator,  MESSAGE_KEY_SIDE2);
   Tuple *number_tuple = dict_find(iterator,  MESSAGE_KEY_NUMBER);
    APP_LOG(APP_LOG_LEVEL_INFO, "Number %d, Side 1 %s, Side 2 %s",(int)number_tuple->value->int32 , side1_tuple->value->cstring, side2_tuple->value->cstring);
-  strncpy(tinycard_app_data_point_at((int)number_tuple->value->int32)->side1 , side1_tuple->value->cstring,20);
-  strncpy(tinycard_app_data_point_at((int)number_tuple->value->int32)->side2 , side2_tuple->value->cstring,20);
+  strncpy(tinycard_app_data_point_at((int)number_tuple->value->int32)->side1 , side1_tuple->value->cstring,25);
+  strncpy(tinycard_app_data_point_at((int)number_tuple->value->int32)->side2 , side2_tuple->value->cstring,40);
   TinyCardAppData *data = window_get_user_data(s_main_window);
   data->view_model.announce_changed = view_model_changed;
 

@@ -25,7 +25,8 @@ function fetchDeck(deckID) {
                 }
               if (fact.type == 'IMAGE')
                 {   
-                  cardDict.SIDE1=fact.imageUrl;
+                  
+                  cardDict.SIDE1= fact.imageUrl.substring(fact.imageUrl.lastIndexOf("/") );
                 }
               var cardSide1 = card.sides[0];
               fact = cardSide1.concepts[0].fact;
@@ -35,7 +36,8 @@ function fetchDeck(deckID) {
                 }
               if (fact.type == 'IMAGE')
                 {   
-                  cardDict.SIDE2=fact.imageUrl;
+                  console.log(fact.imageUrl.substring(fact.imageUrl.lastIndexOf("/")));
+                  cardDict.SIDE2=fact.imageUrl.substring(fact.imageUrl.lastIndexOf("/") );
                 }
               console.log("cardDict: "+cardDict);
               Pebble.sendAppMessage(cardDict);
@@ -50,12 +52,13 @@ function fetchDeck(deckID) {
 }
 
 function downloadImage(imageUrl) {
+    //imageUrl = "https://thawing-everglades-85022.herokuapp.com/?op=resize&tc=""
     console.log("Got message: " + JSON.stringify(imageUrl));
 
-    
+    console.log("https://thawing-everglades-85022.herokuapp.com/?op=resize&tc=" + imageUrl.payload.NETDL_URL.substring(1));
     if (transferInProgress === false) {
       transferInProgress = true;
-      downloadBinaryResource(imageUrl.payload.NETDL_URL, function(bytes) {
+      downloadBinaryResource("https://thawing-everglades-85022.herokuapp.com/?op=resize&tc=" + imageUrl.payload.NETDL_URL.substring(1), function(bytes) {
         transferImageBytes(bytes, imageUrl.payload.NETDL_CHUNK_SIZE,
                            function() { console.log("Done!"); transferInProgress = false; },
                            function(imageUrl) { console.log("Failed! " + imageUrl); transferInProgress = false; }
